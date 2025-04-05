@@ -11,3 +11,6 @@ Thumbs.db
 
 # Ignore other files
 *.log
+
+# Ignore api keys
+api_keys.txt
