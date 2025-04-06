@@ -91,6 +91,8 @@ Upload Your Dataset: Upload the sentiment data and/or stock data files to the ap
 
 Linear regression
 
+ARIMA
+
 Lasso
 
 Decision tree

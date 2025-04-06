@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.linear_model import LinearRegression, Lasso
+from statsmodels.tsa.arima.model import ARIMA
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
@@ -17,7 +18,7 @@ import config
 
 class StockPricePredictor:
     NN_MODELS = ['FNN', 'CNN', 'GRU', 'LSTM']
-    REG_MODELS = ['Linear regression', 'Random forest', 'Decision tree', 'Lasso']
+    REG_MODELS = ['ARIMA', 'Linear regression', 'Random forest', 'Decision tree', 'Lasso']
 
     def __init__(self, stock_file, sentiment_file=None):
         """
@@ -54,9 +55,8 @@ class StockPricePredictor:
             self.data['Sentiment_Score'].fillna(0, inplace=True)
         else:
             self.data = self.stock_data
-        # Normalize features (both with and without sentiment)
-        self.preprocess_data()
 
+        # Normalize features (both with and without sentiment)
         self.features = ['Open', 'High', 'Low', 'Close', 'Volume', 'Ndx_Open']
         self.target_columns = ['Open', 'High', 'Low', 'Close', 'Volume', 'Ndx_Open']
         self.target = 'Open'
@@ -65,6 +65,7 @@ class StockPricePredictor:
             self.target_columns.append('Sentiment_Score')
         
         self.output_units = len(self.target_columns)
+        self.preprocess_data()
             
         print("✅ Data Loaded and Merged with Sentiment Scores" if self.use_sentiment else "✅ Data Loaded without Sentiment Scores")
 
@@ -74,14 +75,8 @@ class StockPricePredictor:
         # Normalize features (both with and without sentiment)
         self.scaler = MinMaxScaler()
         self.y_scaler = MinMaxScaler() 
-        if self.use_sentiment:
-            self.X_scaled = self.scaler.fit_transform(self.data[['Open', 'High', 'Low', 'Close', 'Volume', 'Sentiment_Score', 'Ndx_Open']])
-        else:
-            self.X_scaled = self.scaler.fit_transform(self.data[['Open', 'High', 'Low', 'Close', 'Volume', 'Ndx_Open']])
-        
-        # self.y_scaled = self.scaler.fit_transform(self.data[['Open']])
-        # self.y_scaled = self.y_scaler.fit_transform(self.data[['Open']])
-        self.y_scaled = self.data[['Open']]
+        self.X_scaled = self.scaler.fit_transform(self.data[self.features])
+        self.y_scaled = self.data[self.target]
 
     def split_data(self, model_type, test_size=0.2, random_state=42):
         """Splits data while keeping test indices in sync with original dataset."""
@@ -101,6 +96,12 @@ class StockPricePredictor:
     
     def load_lasso(self):
         return Lasso(alpha=0.2)
+    
+    def load_arima(self, p, i, q):
+        self.open_series = self.data['Open'].copy()
+        dates = pd.to_datetime(self.data['Date'])
+        self.open_series.index = dates
+        return ARIMA(self.open_series, order=(p, i, q))
 
     def load_decision_tree(self):
         return DecisionTreeRegressor()
@@ -208,7 +209,7 @@ class StockPricePredictor:
         print(f"🚀 New CNN model created")
         return model
 
-    def train_model(self, model_type='linear_regression'):
+    def train_model(self, model_type='linear_regression', p=0, i=1, q=0):
         """Trains the selected model."""
         X_train, X_test, y_train, y_test, X_test_indices = self.split_data(model_type)
         self.model_type = model_type
@@ -217,6 +218,9 @@ class StockPricePredictor:
             self.model = self.load_linear_regression()
         elif model_type == 'Lasso':
             self.model = self.load_lasso()
+        elif model_type == 'ARIMA':
+            self.model = self.load_arima(p,i,q).fit()
+            return
         elif model_type == 'Decision tree':
             self.model = self.load_decision_tree()
         elif model_type == 'Random forest':
@@ -237,7 +241,7 @@ class StockPricePredictor:
             X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))  # CNN expects 3D input
         else:
             raise ValueError("❌ Invalid model type. Choose 'Linear regression', 'Lasso', 'Decision tree', 'Random forest', 'LSTM',"
-            "'FNN', 'CNN' or 'GRU'.")
+            "'FNN', 'CNN', 'ARIMA' or 'GRU'.")
 
         if model_type in StockPricePredictor.REG_MODELS:
             self.model.fit(X_train, y_train)  # Convert to 1D
@@ -251,15 +255,16 @@ class StockPricePredictor:
         """Make predictions using the trained model."""
         # Get the data split for testing
 
+        if self.model_type == "ARIMA":
+            y_pred = self.model.predict(start=self.open_series.index[0], end=self.open_series.index[-1])
+            return  self.open_series[1:], y_pred[1:], self.open_series.index[1:]
+
         X_train, X_test, y_train, y_test, X_test_indices = self.split_data(self.model_type)
         if self.model_type == "LSTM" or self.model_type == "GRU":
             X_train = np.reshape(X_train, (X_train.shape[0], 1, X_train.shape[1]))
             X_test = np.reshape(X_test, (X_test.shape[0], 1, X_test.shape[1]))
         
         y_pred = self.model.predict(X_test)
-
-        # Inverse transform the predictions and actual values
-        # y_test = self.scaler.inverse_transform(y_test)
 
         # get actual y_test values without inversing to avoid rounding
         y_test = self.data.set_index('Date').loc[X_test_indices, 'Open'].values
@@ -270,16 +275,13 @@ class StockPricePredictor:
             y_pred = self.y_scaler.inverse_transform(y_pred)
         if not all_targets and self.model_type not in self.REG_MODELS:
             y_pred = y_pred[:, 0]
-        # print(y_pred)
-        # print(y_test)
+
         mse = mean_squared_error(y_test, y_pred)
         r2 = r2_score(y_test, y_pred)
 
         print(f"📊 Model: {self.model_type}")
         print(f"Mean Squared Error: {mse}")
         print(f"R-squared: {r2}")
-        # print(y_pred)
-        # self.plot_actual_vs_predicted(y_test, y_pred, X_test_indices)
 
         # Return actual and predicted values for comparison
         
@@ -500,13 +502,13 @@ def main():
 
     # Train both models (one without sentiment and one with sentiment)
     # predictor_no_sentiment.train_model('Random forest')
-    # predictor_with_sentiment.train_model('Random forest')
+    predictor_with_sentiment.train_model('LSTM')
     predictor_no_sentiment.train_model('LSTM')
     # predictor_with_sentiment.train_model('CNN')
 
     # keras_regressor = KerasRegressor(build_fn=predictor_no_sentiment, epochs=50, batch_size=32, verbose=0)
-    # y_test_no_sentiment, y_pred_no_sentiment, test_indices1 = predictor_no_sentiment.predict()
-    # predictor_no_sentiment.plot_actual_vs_predicted(y_test_no_sentiment, y_pred_no_sentiment, test_indices1)
+    y_test_no_sentiment, y_pred_no_sentiment, test_indices1 = predictor_no_sentiment.predict()
+    predictor_no_sentiment.plot_actual_vs_predicted(y_test_no_sentiment, y_pred_no_sentiment, test_indices1)
     # cv_mean, cv_std = cross_validate_model_sklearn(predictor_no_sentiment.X_scaled, predictor_no_sentiment.y_scaled, keras_regressor)
     # predictor_no_sentiment.train_model('CNN')
     # predictor_with_sentiment.train_model('CNN')
@@ -520,7 +522,7 @@ def main():
     # save_to_csv(predictor_with_sentiment.model_type, predictor_with_sentiment.use_sentiment, test_indices2
     #             , y_test_with_sentiment, y_pred_with_sentiment)
 
-    # StockPricePredictor.compare_models(predictor_no_sentiment, predictor_with_sentiment)
+    StockPricePredictor.compare_models(predictor_no_sentiment, predictor_with_sentiment)
 
     # predictor_no_sentiment.train_model('LSTM')
     # predictor_no_sentiment.predict_next_10_days()
@@ -530,8 +532,8 @@ def main():
     # feature_cols = ["High", "Low", "Close", "Volume", "Ndx_Open"]  # Original feature set (excluding Open)
     # target_idx = 0  # Assuming Open is the first column
 
-    predicted_df =  StockPricePredictor.predict_future(predictor_no_sentiment, live=True, steps=10)
-    StockPricePredictor.plot_live_prediction(predicted_df)
+    # predicted_df =  StockPricePredictor.predict_future(predictor_no_sentiment, live=True, steps=10)
+    # StockPricePredictor.plot_live_prediction(predicted_df)
     # print(predicted_df.tail(20))
     # predicted_future = predict_open_price(predictor_no_sentiment.model, future_df, predictor_no_sentiment.scaler, predictor_no_sentiment.y_scaler, feature_cols, target_idx)
 
