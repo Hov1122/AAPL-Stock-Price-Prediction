@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Financial Forecasting Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #ecf0f1;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    .header {
+      background-color: #34495e;
+      color: #fff;
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 1.2rem;
+    }
+
+    .wave-separator {
+      position: relative;
+      height: 80px;
+      overflow: hidden;
+    }
+
+    .wave-separator svg {
+      position: absolute;
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 15px;
+    }
+
+    .card {
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-body {
+      padding: 25px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 25px;
+    }
+
+    .btn-primary {
+      background-color: #3498db;
+      border: none;
+    }
+
+    .btn-success {
+      background-color: #2ecc71;
+      border: none;
+    }
+
+    .btn-warning {
+      background-color: #f39c12;
+      border: none;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+    }
+
+    .disabled {
+      background-color: #bdc3c7;
+      cursor: not-allowed;
+    }
+
+    .why-portal {
+      background-color: #2c3e50;
+      color: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      margin-top: 50px;
+    }
+
+    .why-portal h3 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+    }
+
+    .why-portal li {
+      font-size: 1.1rem;
+      margin-bottom: 15px;
+    }
+
+    .features-section {
+      margin-top: 60px;
+      padding: 40px 20px;
+      background-color: #f7f9fb;
+    }
+
+    .features-section i {
+      margin-bottom: 15px;
+      color: #3498db;
+    }
+
+    footer {
+      background-color: #f4f4f4;
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2.5rem;
+      }
+
+      .why-portal {
+        margin-top: 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Financial Forecasting Dashboard</h1>
+    <p>Make predictions on stocks, exchange rates, and cryptocurrencies with ease using advanced models.</p>
+  </div>
+
+  <!-- Wave Separator -->
+  <div class="wave-separator">
+    <svg viewBox="0 0 500 80" preserveAspectRatio="none">
+      <path d="M0,30 C150,80 350,0 500,30 L500,00 L0,0 Z" fill="#ecf0f1"></path>
+    </svg>
+  </div>
+
+  <!-- Main Cards -->
+  <div class="container">
+    <div class="row text-center" data-aos="fade-up">
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">Stock Prediction</h5>
+            <p class="card-text">Upload stock data and predict future trends using ML models.</p>
+            <a href="{{ url_for('stocks') }}" class="btn btn-primary">Go to Stocks</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">Exchange Rate Prediction</h5>
+            <p class="card-text">Forecast currency exchange rates with integrated sentiment analysis.</p>
+            <a href="{{ url_for('exchange') }}" class="btn btn-success">Go to Exchange</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">Crypto Price Prediction</h5>
+            <p class="card-text">Predict cryptocurrency trends based on historical data and news.</p>
+            <a href="#" class="btn btn-warning disabled">Coming Soon</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Why Use Our Portal Section -->
+    <div class="why-portal" data-aos="fade-up">
+      <h3>Why Use Our Portal?</h3>
+      <ul>
+        <li><i class="fas fa-chart-bar me-2 text-info"></i> Upload your own data or use live financial data</li>
+        <li><i class="fas fa-brain me-2 text-success"></i> Compare forecasting models with or without sentiment</li>
+        <li><i class="fas fa-chart-line me-2 text-primary"></i> Visualize results with dynamic graphs</li>
+        <li><i class="fas fa-search me-2 text-warning"></i> Evaluate model accuracy with error metrics</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Features Section -->
+  <div class="features-section text-center" data-aos="fade-up">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4">
+          <i class="fas fa-sync-alt fa-2x"></i>
+          <h5>Real-Time Updates</h5>
+          <p>Access real-time data for accurate and timely predictions.</p>
+        </div>
+        <div class="col-md-4">
+          <i class="fas fa-layer-group fa-2x"></i>
+          <h5>Multiple Model Support</h5>
+          <p>Switch between ARIMA, LSTM, regression, or hybrid models.</p>
+        </div>
+        <div class="col-md-4">
+          <i class="fas fa-lock fa-2x"></i>
+          <h5>Privacy First</h5>
+          <p>Your data stays with you. We never store uploaded files.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 FinPredict Portal. All rights reserved.</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script>
+    AOS.init();
+  </script>
+
+</body>
+</html>

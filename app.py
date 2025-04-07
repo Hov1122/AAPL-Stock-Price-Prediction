@@ -1,9 +1,10 @@
 import os
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
 from fetch_data import get_historical_stock_data
 from main import StockPricePredictor
 import config
+
 
 app = Flask(__name__)
 
@@ -17,11 +18,31 @@ app.config['STATIC_FOLDER'] = STATIC_FOLDER
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# Redirect root to home page
 @app.route('/')
 def index():
+    return redirect(url_for('home'))
+
+# Home page
+@app.route('/home')
+def home():
+    return render_template('home.html')
+
+# @app.route('/')
+# def index_redirect():
+#     return redirect('/home')
+
+# Stock prediction page
+@app.route('/stocks')
+def stocks():
     live_stock_data = get_historical_stock_data(config.SYMBOL)
     # live_stock_data = {"open": 5000}
-    return render_template('index.html', live_stock_data=live_stock_data)
+    return render_template('stocks.html', live_stock_data=live_stock_data)
+
+# Exchange rate prediction page
+@app.route('/exchange')
+def exchange():
+    return render_template('exchange.html')
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
