@@ -27,8 +27,15 @@ class StockPricePredictor:
         # Load stock data
         self.stock_data = pd.read_csv(stock_file, parse_dates=['Date'])
         self.use_sentiment = sentiment_file is not None
+    
+        # Ensure 'Date' column is in datetime format
         self.stock_data['Date'] = pd.to_datetime(self.stock_data['Date'], errors='coerce')
-        self.stock_data = self.stock_data[self.stock_data['Date'] >= '2022-03-01']
+
+        # Get the first available date from stock data
+        first_available_date = self.stock_data['Date'].iloc[0]
+
+        # Filter stock data from the first available date (optional, keeps consistency)
+        self.stock_data = self.stock_data[self.stock_data['Date'] >= first_available_date]
         self.loaded_gru = 0
         self.loaded_lstm = 0
         self.loaded_fnn = 0
@@ -41,12 +48,8 @@ class StockPricePredictor:
             # Ensure that the 'Date' column in sentiment data is in datetime format
             self.sentiment_data['Date'] = pd.to_datetime(self.sentiment_data['Date'], errors='coerce')
 
-            # self.sentiment_data['Date'].reset_index(drop=True)
-            # print(self.sentiment_data)
-
-            # Filter sentiment data to include only rows after '2022-03-01'
-            pd.to_datetime(self.stock_data['Date'], errors='coerce')
-            self.stock_data = self.stock_data[self.stock_data['Date'] >= '2022-03-01']
+            # Optional: Align sentiment data with stock data from the first available date
+            self.stock_data = self.stock_data[self.stock_data['Date'] >= first_available_date]
 
             # Merge sentiment data with stock data (based on Date)
             self.data = pd.merge(self.stock_data, self.sentiment_data, on='Date', how='left')
@@ -66,7 +69,7 @@ class StockPricePredictor:
         
         self.output_units = len(self.target_columns)
         self.preprocess_data()
-            
+
         print("✅ Data Loaded and Merged with Sentiment Scores" if self.use_sentiment else "✅ Data Loaded without Sentiment Scores")
 
     def preprocess_data(self):
