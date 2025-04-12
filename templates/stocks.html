@@ -99,10 +99,24 @@
           >
         </div>
 
-        <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary w-100">
-          Upload and Predict
-        </button>
+        <!-- Button Container -->
+        <div
+          class="d-flex flex-column flex-md-row justify-content-between align-items-stretch gap-3 mt-4"
+        >
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary w-100 w-md-50">
+            Upload and Predict
+          </button>
+
+          <!-- Back Button -->
+          <button
+            onclick="history.back()"
+            type="button"
+            class="btn btn-secondary w-100 w-md-50"
+          >
+            Back
+          </button>
+        </div>
       </form>
 
       <!-- Graph for Last 30 Days - Placed first and made smaller -->

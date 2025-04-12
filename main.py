@@ -31,11 +31,8 @@ class StockPricePredictor:
         # Ensure 'Date' column is in datetime format
         self.stock_data['Date'] = pd.to_datetime(self.stock_data['Date'], errors='coerce')
 
-        # Get the first available date from stock data
-        first_available_date = self.stock_data['Date'].iloc[0]
-
-        # Filter stock data from the first available date (optional, keeps consistency)
-        self.stock_data = self.stock_data[self.stock_data['Date'] >= first_available_date]
+        # Should really not do this but to test with and without sentiment we need to have the same dataset.
+        self.stock_data = self.stock_data[self.stock_data['Date'] >= '2022-03-01']
         self.loaded_gru = 0
         self.loaded_lstm = 0
         self.loaded_fnn = 0
@@ -48,7 +45,7 @@ class StockPricePredictor:
             # Ensure that the 'Date' column in sentiment data is in datetime format
             self.sentiment_data['Date'] = pd.to_datetime(self.sentiment_data['Date'], errors='coerce')
 
-            # Optional: Align sentiment data with stock data from the first available date
+            first_available_date = self.sentiment_data['Date'].iloc[0]
             self.stock_data = self.stock_data[self.stock_data['Date'] >= first_available_date]
 
             # Merge sentiment data with stock data (based on Date)
