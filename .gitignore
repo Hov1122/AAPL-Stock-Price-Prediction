@@ -18,6 +18,9 @@ api_keys.txt
 # Ignore generated images
 static/*.png
 
+# Ignore uploaded files
+uploads/*
+
 # Old stuff
 h5_models/
 only_open_models/
