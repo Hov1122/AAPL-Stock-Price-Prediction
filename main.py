@@ -505,8 +505,8 @@ def main():
 
     # Train both models (one without sentiment and one with sentiment)
     # predictor_no_sentiment.train_model('Random forest')
-    predictor_with_sentiment.train_model('LSTM')
-    predictor_no_sentiment.train_model('LSTM')
+    # predictor_with_sentiment.train_model('LSTM')
+    predictor_no_sentiment.train_model('Lasso')
     # predictor_with_sentiment.train_model('CNN')
 
     # keras_regressor = KerasRegressor(build_fn=predictor_no_sentiment, epochs=50, batch_size=32, verbose=0)
@@ -525,7 +525,7 @@ def main():
     # save_to_csv(predictor_with_sentiment.model_type, predictor_with_sentiment.use_sentiment, test_indices2
     #             , y_test_with_sentiment, y_pred_with_sentiment)
 
-    StockPricePredictor.compare_models(predictor_no_sentiment, predictor_with_sentiment)
+    # StockPricePredictor.compare_models(predictor_no_sentiment, predictor_with_sentiment)
 
     # predictor_no_sentiment.train_model('LSTM')
     # predictor_no_sentiment.predict_next_10_days()
